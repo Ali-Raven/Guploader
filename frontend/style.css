@@ -279,7 +279,7 @@ input[type="file"] {
     margin-bottom: 10px;
 }
 
-.link-box {
+/* .link-box {
     display: flex;
     gap: 8px;
 }
@@ -297,9 +297,58 @@ input[type="file"] {
     color: #455066;
 
     outline: none;
+} */
+.link-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.copy-btn {
+.link-box a {
+    flex: 1;
+    min-width: 0;
+
+    padding: 11px 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 9px;
+
+    background: #f8fafc;
+
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 500;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    transition: 0.2s;
+}
+
+.link-box a:hover {
+    border-color: var(--primary);
+    background: #f1f6ff;
+}
+
+#copyButton {
+    border: none;
+    border-radius: 9px;
+    padding: .7rem;
+    background: #1d4ed8;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.copy-btn:hover {
+    background: #29344a;
+}
+/* .copy-btn {
     border: none;
     border-radius: 9px;
 
@@ -315,7 +364,7 @@ input[type="file"] {
 
 .copy-btn:hover {
     background: #29344a;
-}
+} */
 
 .footer {
     margin-top: 18px;

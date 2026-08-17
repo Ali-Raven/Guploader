@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	l "github.com/Guploader/log"
 	"github.com/google/uuid"
@@ -17,6 +19,10 @@ type User struct {
 	Password string `json:"password"`
 	Email    string `json:"email"`
 }
+
+type FileMapper map[string]string
+
+var fileMapper = make(FileMapper)
 
 func RequestHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -32,12 +38,14 @@ func RequestHandler(w http.ResponseWriter, r *http.Request) {
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
+	l.Tlog.Info("checking method of the Reqeust!")
 	if r.Method != http.MethodPost {
 		l.Tlog.Error("failed , method post must called to the server!")
 		http.Error(w, "Post request must be configured!", http.StatusMethodNotAllowed)
 		return
 	}
 
+	l.Tlog.Info("method checked Successfully!")
 	// var file file
 
 	file, header, err := r.FormFile("file")
@@ -56,12 +64,10 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filepath.Base(header.Filename)
-
 	fileExt := filepath.Ext(header.Filename)
-	fileID := uuid.New().String() + fileExt
-
-	filePath := filepath.Join("./uploads", filepath.Base(header.Filename) + fileID )
+	fileName := filepath.Base(strings.TrimSuffix(header.Filename, fileExt))
+	fileID := uuid.New().String()
+	filePath := filepath.Join("./uploads", fileName+"_"+fileID+fileExt)
 
 	destFile, err := os.Create(filePath)
 	if err != nil {
@@ -78,18 +84,68 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
-	
-
 	l.Tlog.Info("file recived Sudccessfully!")
+
+	// adding key value of the id and filepath to our map
+	fileMapper[fileID] = filePath
+
+	// generating randomize link for user
+	url := fmt.Sprintf("http://localhost:8085/d/%s", fileID)
+
+	// setting up header for response
+	w.Header().Set("Content-Type", "application/json")
+
+	res := FileMapper{
+		"url": url,
+	}
+	encodeErr := json.NewEncoder(w).Encode(res)
+	if encodeErr != nil {
+		l.Tlog.Error("Can't Encode url to json object for sending to frontend!")
+		return
+	}
+
+	// URLchecker := make(map[string]string)
+
 }
 
-func Server(file file) {
+func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+	// validating the URL‌ request method
+
+	if r.Method != http.MethodGet {
+		l.Tlog.Error("Method of the URL must be GET in this route!")
+		http.Error(w, "Error for bad Request ", http.StatusBadRequest)
+		return
+	}
+	// getting url path first
+
+	urlPath := r.URL.Path
+	reqFileID := strings.TrimPrefix(urlPath, "/d/")
+
+	idValue, exist := fileMapper[reqFileID]
+	if !exist {
+		l.Tlog.Error("file does not exists on the server !")
+		http.Error(w, "File does not exists on our server !", http.StatusNotFound)
+		return
+	}
+
+	fmt.Println("idValue:", idValue)
+	fmt.Println("downloadName:", filepath.Base(idValue))
+
+
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filepath.Base(idValue)))
+
+	// if file exists sending to the server
+	http.ServeFile(w, r, idValue)
+
+}
+func Server() {
 
 	fs := http.FileServer(http.Dir("./frontend/"))
 	http.Handle("/", fs)
+	// /upload
 	http.HandleFunc("/upload", UploadHandler)
-
+	// /d
+	http.HandleFunc("/d/", DownloadHandler)
 	port := "8085"
 	fmt.Println("Server is now running on port " + port)
 	err := http.ListenAndServe(":"+port, nil)

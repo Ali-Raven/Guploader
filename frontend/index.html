@@ -117,12 +117,11 @@
 
                 <div class="link-box">
 
-                    <input id="downloadLink" readonly />
+                    <!-- <input id="downloadLink" readonly /> -->
+                     <a id="downloadLink" href="#" target="_blank"></a>
 
                     <button class="copy-btn" id="copyButton">
-
                         Copy
-
                     </button>
 
                 </div>
@@ -365,7 +364,8 @@
 
                         downloadLink.value =
                             response.url;
-
+                        downloadLink.href = response.url
+                        downloadLink.textContent = response.url
 
                         result.style.display =
                             "block";

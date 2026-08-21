@@ -90,7 +90,11 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	fileMapper[fileID] = filePath
 
 	// generating randomize link for user
-	url := fmt.Sprintf("http://localhost:8085/d/%s", fileID)
+	scheme := "http"
+	if r.Header.Get("X-Forwarded-Proto") == "https" || r.TLS != nil {
+		scheme = "https"
+	}
+	url := fmt.Sprintf("%s://%s/d/%s",scheme , r.Host, fileID)
 
 	// setting up header for response
 	w.Header().Set("Content-Type", "application/json")

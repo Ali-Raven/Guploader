@@ -139,14 +139,19 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 func Server() {
-
+	if _ , err := os.Stat("./uploads") ; os.IsNotExist(err) {
+		os.Mkdir("./uploads" , 0755)
+	}
 	fs := http.FileServer(http.Dir("./frontend/"))
 	http.Handle("/", fs)
 	// /upload
 	http.HandleFunc("/upload", UploadHandler)
 	// /d
 	http.HandleFunc("/d/", DownloadHandler)
-	port := "8085"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8085"
+	}
 	fmt.Println("Server is now running on port " + port)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {

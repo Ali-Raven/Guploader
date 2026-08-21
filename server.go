@@ -89,7 +89,7 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// adding key value of the id and filepath to our map
 	fileMapper[fileID] = filePath
 
-	// generating randomize link for user
+	// generating randomize link for user (setting scheme default to http)
 	scheme := "http"
 	if r.Header.Get("X-Forwarded-Proto") == "https" || r.TLS != nil {
 		scheme = "https"
